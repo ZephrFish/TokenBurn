@@ -2,6 +2,15 @@
 
 Self-hosted dashboard for tracking LLM token usage and cost across multiple machines. Compares API-equivalent costs against your subscription.
 
+<img width="1440" height="543" alt="image" src="https://github.com/user-attachments/assets/fe4b6089-73f0-4eaf-b834-a40708675374" />
+
+Ever been curious about what your actual spend rate would be in API usage vs what a Claude subscription is costing you? Well now you can, it has a breakdown per machine where you can run `./sync.sh||./sync.ps1` and it'll pick up your local machine if you use the ame account across multple hosts and projects.
+
+You can also do breakdown per project:
+<img width="1424" height="610" alt="image" src="https://github.com/user-attachments/assets/fe848538-25c3-44e9-ba39-671a5d6b9ec4" />
+
+Everyone loves a graph so there's pleny in here.
+
 ## Setup
 
 ### 1. Create your repo from this template
