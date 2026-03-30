@@ -64,11 +64,11 @@ Add a cron job on each machine:
 
 ## Dashboard features
 
-- **Filters** — date range presets, machine, project
-- **Currency selector** — USD, GBP, EUR, CAD, AUD, JPY, CHF, INR, BRL
-- **Subscription comparison** — configurable cost/month and start date, savings multiplier, monthly and cumulative cost vs sub
-- **Charts** — daily token usage, cost by model/project, hourly activity, cost trends
-- **Tables** — per-project and per-day breakdowns
+- **Filters** - date range presets, machine, project
+- **Currency selector** - USD, GBP, EUR, CAD, AUD, JPY, CHF, INR, BRL
+- **Subscription comparison** - configurable cost/month and start date, savings multiplier, monthly and cumulative cost vs sub
+- **Charts** - daily token usage, cost by model/project, hourly activity, cost trends
+- **Tables** - per-project and per-day breakdowns
 
 All settings (currency, sub cost, sub start date) are persisted in the browser via localStorage.
 
@@ -81,8 +81,8 @@ All settings (currency, sub cost, sub start date) are persisted in the browser v
 ## Files
 
 ```
-collect.py      Run on each machine — exports local session data
-build.py        Merges all machine data — generates index.html
+collect.py      Run on each machine - exports local session data
+build.py        Merges all machine data - generates index.html
 template.html   Dashboard HTML template
 sync.sh         macOS/Linux: collect + git push
 sync.ps1        Windows: collect + git push
