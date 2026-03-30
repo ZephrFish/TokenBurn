@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TokenBurn</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242836;
+    --border: #2e3348;
+    --text: #e2e4ed;
+    --text-dim: #8b8fa3;
+    --accent: #d97706;
+    --accent2: #2563eb;
+    --accent3: #7c3aed;
+    --accent4: #059669;
+    --red: #ef4444;
+    --green: #22c55e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 24px;
+  }
+
+  /* Header */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header h1 span { color: var(--accent); }
+  .meta { color: var(--text-dim); font-size: 0.82rem; }
+
+  /* Filter bar */
+  .filter-bar {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 20px; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .filter-bar label { font-size: 0.78rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .filter-group { display: flex; align-items: center; gap: 8px; }
+  .filter-bar input[type="date"], .filter-bar input[type="month"], .filter-bar select, .filter-bar input[type="number"] {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    padding: 6px 10px; border-radius: 6px; font-size: 0.82rem; font-family: inherit;
+  }
+  .filter-bar input[type="number"] { width: 90px; }
+  .filter-bar input[type="number"]::-webkit-inner-spin-button { opacity: 0.5; }
+  .filter-bar input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }
+  .preset-btn {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text-dim);
+    padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.78rem; font-family: inherit;
+    transition: all 0.15s;
+  }
+  .preset-btn:hover, .preset-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+  .filter-sep { width: 1px; height: 28px; background: var(--border); }
+
+  /* KPI grid */
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px; margin-bottom: 24px;
+  }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px;
+  }
+  .kpi .label { font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .kpi .value { font-size: 1.5rem; font-weight: 700; }
+  .kpi .sub { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; }
+  .kpi .value.cost { color: var(--accent); }
+  .kpi .value.tokens { color: var(--accent2); }
+  .kpi .value.sessions { color: var(--accent3); }
+  .kpi .value.messages { color: var(--accent4); }
+  .kpi .value.savings { color: var(--green); }
+  .kpi .value.sub { color: #ec4899; }
+
+  /* Savings highlight card */
+  .savings-banner {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    border: none; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  }
+  .savings-banner .left { display: flex; flex-direction: column; gap: 2px; }
+  .savings-banner .big { font-size: 2rem; font-weight: 800; color: #fff; }
+  .savings-banner .desc { font-size: 0.85rem; color: #d1fae5; }
+  .savings-banner .right { display: flex; gap: 32px; flex-wrap: wrap; }
+  .savings-banner .stat { text-align: center; }
+  .savings-banner .stat .val { font-size: 1.3rem; font-weight: 700; color: #fff; }
+  .savings-banner .stat .lbl { font-size: 0.72rem; color: #a7f3d0; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px; margin-bottom: 20px;
+  }
+  .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+  .card canvas { max-height: 320px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th { text-align: left; color: var(--text-dim); font-weight: 500; padding: 8px 12px; border-bottom: 1px solid var(--border); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.04em; }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .cost-cell { color: var(--accent); font-weight: 600; }
+  .scroll-table { max-height: 400px; overflow-y: auto; }
+  .scroll-table::-webkit-scrollbar { width: 6px; }
+  .scroll-table::-webkit-scrollbar-track { background: var(--surface); }
+  .scroll-table::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Token<span>Burn</span></h1>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="meta" id="generatedAt"></span>
+  </div>
+</div>
+
+<!-- Filter bar -->
+<div class="filter-bar">
+  <div class="filter-group">
+    <label>From</label>
+    <input type="date" id="filterFrom">
+  </div>
+  <div class="filter-group">
+    <label>To</label>
+    <input type="date" id="filterTo">
+  </div>
+  <div class="filter-sep"></div>
+  <button class="preset-btn" data-preset="7d">7 Days</button>
+  <button class="preset-btn" data-preset="30d">30 Days</button>
+  <button class="preset-btn" data-preset="thisMonth">This Month</button>
+  <button class="preset-btn" data-preset="lastMonth">Last Month</button>
+  <button class="preset-btn active" data-preset="all">All Time</button>
+  <div class="filter-sep"></div>
+  <div class="filter-group">
+    <label>Machine</label>
+    <select id="filterMachine"><option value="all">All Machines</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Project</label>
+    <select id="filterProject"><option value="all">All Projects</option></select>
+  </div>
+  <div class="filter-sep"></div>
+  <div class="filter-group">
+    <label>Currency</label>
+    <select id="currencySelect">
+      <option value="GBP">&pound; GBP</option>
+      <option value="USD">$ USD</option>
+      <option value="EUR">&euro; EUR</option>
+      <option value="CAD">C$ CAD</option>
+      <option value="AUD">A$ AUD</option>
+      <option value="JPY">&yen; JPY</option>
+      <option value="CHF">Fr CHF</option>
+      <option value="INR">&pound; INR</option>
+      <option value="BRL">R$ BRL</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Sub /mo</label>
+    <input type="number" id="subCostInput" min="0" step="1" value="180">
+  </div>
+  <div class="filter-group">
+    <label>Sub Start</label>
+    <input type="month" id="subStartInput" value="2025-11">
+  </div>
+</div>
+
+<!-- Savings banner -->
+<div class="savings-banner" id="savingsBanner">
+  <div class="left">
+    <div class="big" id="savingsMultiplier">—</div>
+    <div class="desc">more value than API pricing vs your Max sub</div>
+  </div>
+  <div class="right">
+    <div class="stat"><div class="val" id="bannerApiCost">—</div><div class="lbl" id="bannerApiLabel">API Cost</div></div>
+    <div class="stat"><div class="val" id="bannerSubCost">—</div><div class="lbl">Max Sub Cost</div></div>
+    <div class="stat"><div class="val" id="bannerSaved">—</div><div class="lbl">Saved vs API</div></div>
+  </div>
+</div>
+
+<div class="kpi-grid" id="kpis"></div>
+
+<div class="card">
+  <h2>Monthly: API Cost vs Max Subscription</h2>
+  <canvas id="subCompareChart"></canvas>
+</div>
+
+<div class="card">
+  <h2>Daily Token Usage & Cost</h2>
+  <canvas id="dailyChart"></canvas>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h2>Cost by Model</h2>
+    <canvas id="modelPieChart"></canvas>
+  </div>
+  <div class="card">
+    <h2>Cost by Project</h2>
+    <canvas id="projectPieChart"></canvas>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h2>Token Breakdown by Model</h2>
+    <canvas id="modelBarChart"></canvas>
+  </div>
+  <div class="card">
+    <h2>Activity by Hour (UTC)</h2>
+    <canvas id="hourChart"></canvas>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h2>Daily Cost Trend</h2>
+    <canvas id="costTrendChart"></canvas>
+  </div>
+  <div class="card">
+    <h2>Cumulative Cost (API vs Max Sub)</h2>
+    <canvas id="cumulativeCostChart"></canvas>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Project Breakdown</h2>
+  <div class="scroll-table">
+    <table id="projectTable">
+      <thead><tr>
+        <th>Project</th><th class="num">Sessions</th><th class="num">Messages</th>
+        <th class="num">Input Tokens</th><th class="num">Output Tokens</th>
+        <th class="num">Cache Read</th><th class="num">Cache Create</th><th class="num">Est. Cost</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Daily Breakdown</h2>
+  <div class="scroll-table">
+    <table id="dailyTable">
+      <thead><tr>
+        <th>Date</th><th class="num">Sessions</th><th class="num">Messages</th>
+        <th class="num">Input</th><th class="num">Output</th>
+        <th class="num">Cache Read</th><th class="num">Cache Create</th><th class="num">Est. Cost</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+/*__DATA_PLACEHOLDER__*/
+
+// --- Currency config ---
+const CURRENCIES = {
+  USD: { symbol: '$',  rate: 1.0,    decimals: 2 },
+  GBP: { symbol: '\u00a3', rate: 0.79,  decimals: 2 },
+  EUR: { symbol: '\u20ac', rate: 0.92,  decimals: 2 },
+  CAD: { symbol: 'C$', rate: 1.36,   decimals: 2 },
+  AUD: { symbol: 'A$', rate: 1.53,   decimals: 2 },
+  JPY: { symbol: '\u00a5', rate: 149.5,  decimals: 0 },
+  CHF: { symbol: 'Fr', rate: 0.88,   decimals: 2 },
+  INR: { symbol: '\u20b9', rate: 83.5,   decimals: 0 },
+  BRL: { symbol: 'R$', rate: 4.97,   decimals: 2 },
+};
+
+let selectedCurrency = 'GBP';
+let subCostPerMonth = 180; // in selected currency
+let subStartMonth = '2025-11'; // YYYY-MM
+
+function usdToLocal(usd) {
+  return usd * CURRENCIES[selectedCurrency].rate;
+}
+
+function fmtC(n) {
+  const c = CURRENCIES[selectedCurrency];
+  return c.symbol + n.toFixed(c.decimals);
+}
+
+function fmt(n) {
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return n.toLocaleString();
+}
+function fmtFull(n) { return n.toLocaleString(); }
+function fmtUSD(n) { return '$' + n.toFixed(2); }
+
+const COLORS = {
+  input: '#2563eb', output: '#ef4444', cacheRead: '#059669', cacheCreate: '#7c3aed',
+  accent: '#d97706', sub: '#ec4899', green: '#22c55e',
+  models: ['#d97706', '#2563eb', '#7c3aed', '#059669', '#ef4444', '#ec4899'],
+  projects: ['#d97706', '#2563eb', '#7c3aed', '#059669', '#ef4444', '#ec4899', '#06b6d4', '#f59e0b', '#8b5cf6', '#10b981'],
+};
+
+Chart.defaults.color = '#8b8fa3';
+Chart.defaults.borderColor = '#2e3348';
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif";
+
+// --- Chart instances (for destroy/recreate) ---
+let charts = {};
+
+// --- Filter state ---
+let filterFrom = '';
+let filterTo = '';
+let filterProject = 'all';
+let filterMachine = 'all';
+
+// If machines data exists, build a per-machine lookup of project names
+const MACHINE_DATA = (DATA.machines || []);
+
+
+function getFilteredData() {
+  let daily = DATA.daily;
+
+  // Date filter
+  if (filterFrom) daily = daily.filter(d => d.date >= filterFrom);
+  if (filterTo) daily = daily.filter(d => d.date <= filterTo);
+
+  // Machine filter — narrow daily entries to a single machine's contribution
+  if (filterMachine !== 'all') {
+    daily = daily.map(d => {
+      const mach = (d.by_machine || {})[filterMachine];
+      if (!mach) return null;
+      return { ...d, ...mach, by_model: d.by_model, by_machine: d.by_machine };
+    }).filter(Boolean);
+  }
+
+  // Aggregate from daily
+  const modelMap = {};
+  let totalInput = 0, totalOutput = 0, totalCacheRead = 0, totalCacheCreate = 0, totalCost = 0, totalMessages = 0, totalSessions = 0;
+
+  daily.forEach(d => {
+    totalInput += d.input_tokens;
+    totalOutput += d.output_tokens;
+    totalCacheRead += d.cache_read;
+    totalCacheCreate += d.cache_create;
+    totalCost += d.cost;
+    totalMessages += d.messages;
+    totalSessions += d.sessions || 0;
+
+    if (d.by_model) {
+      Object.entries(d.by_model).forEach(([model, v]) => {
+        if (!modelMap[model]) modelMap[model] = { model, input_tokens: 0, output_tokens: 0, cache_read: 0, cache_create: 0, cost: 0, messages: 0 };
+        const m = modelMap[model];
+        m.input_tokens += v.input_tokens; m.output_tokens += v.output_tokens;
+        m.cache_read += v.cache_read; m.cache_create += v.cache_create;
+        m.cost += v.cost;
+      });
+    }
+  });
+
+  // Project filter
+  let projects = DATA.projects;
+  if (filterMachine !== 'all') {
+    projects = projects.filter(p => p.project.endsWith(`(${filterMachine})`));
+  }
+  if (filterProject !== 'all') {
+    projects = projects.filter(p => p.project === filterProject);
+    // Scale daily by project's share
+    const projCost = projects.reduce((s, p) => s + p.cost, 0);
+    const allCost = (filterMachine !== 'all'
+      ? DATA.projects.filter(p => p.project.endsWith(`(${filterMachine})`))
+      : DATA.projects
+    ).reduce((s, p) => s + p.cost, 0);
+    if (allCost > 0) {
+      const ratio = projCost / allCost;
+      totalInput = Math.round(totalInput * ratio); totalOutput = Math.round(totalOutput * ratio);
+      totalCacheRead = Math.round(totalCacheRead * ratio); totalCacheCreate = Math.round(totalCacheCreate * ratio);
+      totalCost *= ratio; totalMessages = Math.round(totalMessages * ratio);
+      daily = daily.map(d => ({
+        ...d,
+        input_tokens: Math.round(d.input_tokens * ratio), output_tokens: Math.round(d.output_tokens * ratio),
+        cache_read: Math.round(d.cache_read * ratio), cache_create: Math.round(d.cache_create * ratio),
+        cost: d.cost * ratio, messages: Math.round(d.messages * ratio),
+      }));
+    }
+  }
+
+  const models = Object.values(modelMap).sort((a, b) => b.cost - a.cost);
+
+  // Months = from sub start (or filter start) to the last data point (or filter end)
+  let months = 0;
+  if (daily.length > 0) {
+    const subStart = new Date(subStartMonth + '-01');
+    const filterStart = filterFrom ? new Date(filterFrom) : null;
+    const first = filterStart && filterStart > subStart ? filterStart : subStart;
+    const last = new Date(daily[daily.length - 1].date);
+    if (last >= first) {
+      months = (last.getFullYear() - first.getFullYear()) * 12 + (last.getMonth() - first.getMonth()) + 1;
+    }
+  }
+
+  return {
+    daily, models, projects, hours: DATA.hours,
+    grand: {
+      input_tokens: totalInput, output_tokens: totalOutput,
+      cache_read: totalCacheRead, cache_create: totalCacheCreate,
+      total_cost: totalCost, total_messages: totalMessages, total_sessions: totalSessions,
+      date_range: { start: daily.length ? daily[0].date : '', end: daily.length ? daily[daily.length - 1].date : '' },
+    },
+    months,
+  };
+}
+
+// --- Monthly aggregation helper ---
+function getMonthlyData(daily) {
+  const map = {};
+  daily.forEach(d => {
+    const month = d.date.substring(0, 7); // "YYYY-MM"
+    if (!map[month]) map[month] = { month, cost: 0, messages: 0 };
+    map[month].cost += d.cost;
+    map[month].messages += d.messages;
+  });
+  return Object.values(map).sort((a, b) => a.month.localeCompare(b.month));
+}
+
+// --- Render all ---
+function renderAll() {
+  // Destroy existing charts
+  Object.values(charts).forEach(c => c.destroy());
+  charts = {};
+
+  const data = getFilteredData();
+  renderSavingsBanner(data);
+  renderKPIs(data);
+  renderSubCompare(data);
+  renderDailyChart(data);
+  renderModelPie(data);
+  renderProjectPie(data);
+  renderModelBar(data);
+  renderHourChart(data);
+  renderCostTrend(data);
+  renderCumulativeCost(data);
+  renderProjectTable(data);
+  renderDailyTable(data);
+}
+
+function renderSavingsBanner(data) {
+  const apiLocal = usdToLocal(data.grand.total_cost);
+  const subLocal = data.months * subCostPerMonth;
+  const multiplier = subLocal > 0 ? apiLocal / subLocal : 0;
+  const saved = apiLocal - subLocal;
+
+  document.getElementById('savingsMultiplier').textContent = multiplier.toFixed(1) + 'x';
+  document.getElementById('bannerApiCost').textContent = fmtC(apiLocal);
+  document.getElementById('bannerSubCost').textContent = fmtC(subLocal);
+  document.getElementById('bannerSaved').textContent = fmtC(Math.abs(saved));
+  document.getElementById('bannerApiLabel').textContent = `API Cost (${selectedCurrency})`;
+
+  const banner = document.getElementById('savingsBanner');
+  if (saved > 0) {
+    banner.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+    banner.querySelector('.desc').textContent = 'more value than API pricing vs your sub';
+    banner.querySelector('.right .stat:last-child .lbl').textContent = 'Saved vs API';
+  } else {
+    banner.style.background = 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)';
+    banner.querySelector('.desc').textContent = 'API would have been cheaper for this period';
+    banner.querySelector('.right .stat:last-child .lbl').textContent = 'Overpaid vs API';
+  }
+}
+
+function renderKPIs(data) {
+  const g = data.grand;
+  const totalTokens = g.input_tokens + g.output_tokens + g.cache_read + g.cache_create;
+  const apiLocal = usdToLocal(g.total_cost);
+  const subLocal = data.months * subCostPerMonth;
+  const perMonthAPI = data.months > 0 ? apiLocal / data.months : 0;
+
+  const kpis = [
+    { label: 'API Cost Equivalent', value: fmtC(apiLocal), cls: 'cost', sub: selectedCurrency !== 'USD' ? fmtUSD(g.total_cost) + ' USD' : fmtFull(totalTokens) + ' tokens' },
+    { label: 'Sub Cost', value: fmtC(subLocal), cls: 'sub', sub: data.months + ' month' + (data.months !== 1 ? 's' : '') + ' @ ' + fmtC(subCostPerMonth) + '/mo' },
+    { label: 'API Cost / Month', value: fmtC(perMonthAPI), cls: 'cost', sub: 'vs ' + fmtC(subCostPerMonth) + ' sub' },
+    { label: 'Total Tokens', value: fmt(totalTokens), cls: 'tokens', sub: fmtFull(totalTokens) },
+    { label: 'Cache Hit Rate', value: g.cache_read + g.input_tokens > 0 ? ((g.cache_read / (g.cache_read + g.input_tokens)) * 100).toFixed(1) + '%' : '0%', cls: 'sessions', sub: fmt(g.cache_read) + ' cache read tokens' },
+    { label: 'Messages', value: fmt(g.total_messages), cls: 'messages', sub: data.daily.length + ' active days' },
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(k => `
+    <div class="kpi">
+      <div class="label">${k.label}</div>
+      <div class="value ${k.cls}">${k.value}</div>
+      <div class="sub">${k.sub}</div>
+    </div>
+  `).join('');
+}
+
+function renderSubCompare(data) {
+  const monthly = getMonthlyData(data.daily);
+  const labels = monthly.map(m => m.month);
+  const apiCosts = monthly.map(m => usdToLocal(m.cost));
+  const subCosts = monthly.map(() => subCostPerMonth);
+
+  charts.subCompare = new Chart(document.getElementById('subCompareChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'API Cost Equivalent',
+          data: apiCosts,
+          backgroundColor: COLORS.accent + 'cc',
+          borderColor: COLORS.accent,
+          borderWidth: 1,
+          borderRadius: 4,
+        },
+        {
+          label: `Sub (${fmtC(subCostPerMonth)}/mo)`,
+          data: subCosts,
+          backgroundColor: COLORS.sub + '44',
+          borderColor: COLORS.sub,
+          borderWidth: 2,
+          borderDash: [6, 4],
+          type: 'line',
+          fill: false,
+          tension: 0,
+          pointRadius: 4,
+          pointBackgroundColor: COLORS.sub,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { grid: { display: false } },
+        y: { ticks: { callback: v => fmtC(v) } }
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: ${fmtC(ctx.raw)}`,
+            afterBody: (items) => {
+              const api = items[0] ? items[0].raw : 0;
+              const sub = subCostPerMonth;
+              if (api > sub) return `${(api / sub).toFixed(1)}x value vs sub`;
+              return `Sub cost ${(sub / api).toFixed(1)}x of API`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderDailyChart(data) {
+  charts.daily = new Chart(document.getElementById('dailyChart'), {
+    type: 'bar',
+    data: {
+      labels: data.daily.map(d => d.date),
+      datasets: [
+        { label: 'Cache Read', data: data.daily.map(d => d.cache_read), backgroundColor: COLORS.cacheRead, stack: 'tokens' },
+        { label: 'Cache Create', data: data.daily.map(d => d.cache_create), backgroundColor: COLORS.cacheCreate, stack: 'tokens' },
+        { label: 'Input', data: data.daily.map(d => d.input_tokens), backgroundColor: COLORS.input, stack: 'tokens' },
+        { label: 'Output', data: data.daily.map(d => d.output_tokens), backgroundColor: COLORS.output, stack: 'tokens' },
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { stacked: true, grid: { display: false } },
+        y: { stacked: true, ticks: { callback: v => fmt(v) } }
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: ${fmtFull(ctx.raw)} tokens`,
+            afterBody: (items) => {
+              const idx = items[0].dataIndex;
+              return `Est. Cost: ${fmtC(usdToLocal(data.daily[idx].cost))}${selectedCurrency !== 'USD' ? ' (' + fmtUSD(data.daily[idx].cost) + ')' : ''}`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderModelPie(data) {
+  charts.modelPie = new Chart(document.getElementById('modelPieChart'), {
+    type: 'doughnut',
+    data: {
+      labels: data.models.map(m => m.model),
+      datasets: [{ data: data.models.map(m => usdToLocal(m.cost)), backgroundColor: COLORS.models.slice(0, data.models.length), borderWidth: 0 }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        tooltip: { callbacks: { label: ctx => `${ctx.label}: ${fmtC(ctx.raw)}` } },
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+}
+
+function renderProjectPie(data) {
+  const top = data.projects.slice(0, 8);
+  const otherCost = data.projects.slice(8).reduce((s, p) => s + p.cost, 0);
+  const labels = top.map(p => p.project);
+  const values = top.map(p => usdToLocal(p.cost));
+  if (otherCost > 0) { labels.push('Other'); values.push(usdToLocal(otherCost)); }
+
+  charts.projectPie = new Chart(document.getElementById('projectPieChart'), {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data: values, backgroundColor: COLORS.projects.slice(0, labels.length), borderWidth: 0 }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        tooltip: { callbacks: { label: ctx => `${ctx.label}: ${fmtC(ctx.raw)}` } },
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+}
+
+function renderModelBar(data) {
+  charts.modelBar = new Chart(document.getElementById('modelBarChart'), {
+    type: 'bar',
+    data: {
+      labels: data.models.map(m => m.model),
+      datasets: [
+        { label: 'Input', data: data.models.map(m => m.input_tokens), backgroundColor: COLORS.input },
+        { label: 'Output', data: data.models.map(m => m.output_tokens), backgroundColor: COLORS.output },
+        { label: 'Cache Read', data: data.models.map(m => m.cache_read), backgroundColor: COLORS.cacheRead },
+        { label: 'Cache Create', data: data.models.map(m => m.cache_create), backgroundColor: COLORS.cacheCreate },
+      ]
+    },
+    options: {
+      responsive: true, indexAxis: 'y',
+      scales: {
+        x: { stacked: true, ticks: { callback: v => fmt(v) } },
+        y: { stacked: true, grid: { display: false } }
+      },
+      plugins: { tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtFull(ctx.raw)}` } } }
+    }
+  });
+}
+
+function renderHourChart(data) {
+  charts.hour = new Chart(document.getElementById('hourChart'), {
+    type: 'bar',
+    data: {
+      labels: data.hours.map(h => h.hour.toString().padStart(2, '0') + ':00'),
+      datasets: [{
+        label: 'Messages', data: data.hours.map(h => h.count),
+        backgroundColor: COLORS.accent + '99', borderColor: COLORS.accent, borderWidth: 1, borderRadius: 3,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { x: { grid: { display: false } }, y: { ticks: { callback: v => fmt(v) } } },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+function renderCostTrend(data) {
+  charts.costTrend = new Chart(document.getElementById('costTrendChart'), {
+    type: 'bar',
+    data: {
+      labels: data.daily.map(d => d.date),
+      datasets: [{
+        label: 'Daily Cost', data: data.daily.map(d => usdToLocal(d.cost)),
+        backgroundColor: COLORS.accent + '80', borderColor: COLORS.accent, borderWidth: 1, borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: { x: { grid: { display: false } }, y: { ticks: { callback: v => fmtC(v) } } },
+      plugins: {
+        tooltip: { callbacks: { label: ctx => fmtC(ctx.raw) } },
+        legend: { display: false }
+      }
+    }
+  });
+}
+
+function renderCumulativeCost(data) {
+  let cumAPI = 0, cumSub = 0;
+  let currentMonth = '';
+  const apiData = [];
+  const subData = [];
+  data.daily.forEach(d => {
+    cumAPI += usdToLocal(d.cost);
+    const m = d.date.substring(0, 7);
+    if (m !== currentMonth) { cumSub += subCostPerMonth; currentMonth = m; }
+    apiData.push(cumAPI);
+    subData.push(cumSub);
+  });
+
+  charts.cumulative = new Chart(document.getElementById('cumulativeCostChart'), {
+    type: 'line',
+    data: {
+      labels: data.daily.map(d => d.date),
+      datasets: [
+        {
+          label: 'Cumulative API Cost', data: apiData,
+          borderColor: COLORS.accent, backgroundColor: COLORS.accent + '20',
+          fill: true, tension: 0.3, pointRadius: 2, pointBackgroundColor: COLORS.accent,
+        },
+        {
+          label: 'Cumulative Max Sub', data: subData,
+          borderColor: COLORS.sub, backgroundColor: COLORS.sub + '10',
+          fill: true, tension: 0, pointRadius: 0, borderWidth: 2, borderDash: [6, 4],
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { grid: { display: false } },
+        y: { ticks: { callback: v => fmtC(v) } }
+      },
+      plugins: {
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtC(ctx.raw)}` } }
+      }
+    }
+  });
+}
+
+function renderProjectTable(data) {
+  document.querySelector('#projectTable tbody').innerHTML = data.projects.map(p => `
+    <tr>
+      <td><strong>${p.project}</strong></td>
+      <td class="num">${p.sessions}</td><td class="num">${fmtFull(p.messages)}</td>
+      <td class="num">${fmt(p.input_tokens)}</td><td class="num">${fmt(p.output_tokens)}</td>
+      <td class="num">${fmt(p.cache_read)}</td><td class="num">${fmt(p.cache_create)}</td>
+      <td class="num cost-cell">${fmtC(usdToLocal(p.cost))}</td>
+    </tr>
+  `).join('');
+}
+
+function renderDailyTable(data) {
+  document.querySelector('#dailyTable tbody').innerHTML = [...data.daily].reverse().map(d => `
+    <tr>
+      <td><strong>${d.date}</strong></td>
+      <td class="num">${d.sessions}</td><td class="num">${fmtFull(d.messages)}</td>
+      <td class="num">${fmt(d.input_tokens)}</td><td class="num">${fmt(d.output_tokens)}</td>
+      <td class="num">${fmt(d.cache_read)}</td><td class="num">${fmt(d.cache_create)}</td>
+      <td class="num cost-cell">${fmtC(usdToLocal(d.cost))}</td>
+    </tr>
+  `).join('');
+}
+
+// --- Filter logic ---
+function applyPreset(preset) {
+  const today = new Date();
+  const yyyy = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-preset="${preset}"]`).classList.add('active');
+
+  if (preset === 'all') {
+    filterFrom = ''; filterTo = '';
+  } else if (preset === '7d') {
+    const d = new Date(today); d.setDate(d.getDate() - 6);
+    filterFrom = yyyy(d); filterTo = yyyy(today);
+  } else if (preset === '30d') {
+    const d = new Date(today); d.setDate(d.getDate() - 29);
+    filterFrom = yyyy(d); filterTo = yyyy(today);
+  } else if (preset === 'thisMonth') {
+    filterFrom = yyyy(new Date(today.getFullYear(), today.getMonth(), 1));
+    filterTo = yyyy(today);
+  } else if (preset === 'lastMonth') {
+    const first = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const last = new Date(today.getFullYear(), today.getMonth(), 0);
+    filterFrom = yyyy(first); filterTo = yyyy(last);
+  }
+
+  document.getElementById('filterFrom').value = filterFrom;
+  document.getElementById('filterTo').value = filterTo;
+  renderAll();
+}
+
+function populateProjectDropdown() {
+  const sel = document.getElementById('filterProject');
+  const current = sel.value;
+  // Clear all except "All"
+  while (sel.options.length > 1) sel.remove(1);
+  let projects = DATA.projects;
+  if (filterMachine !== 'all') {
+    projects = projects.filter(p => p.project.endsWith(`(${filterMachine})`));
+  }
+  projects.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.project; opt.textContent = p.project;
+    sel.appendChild(opt);
+  });
+  // Restore selection if still valid
+  if ([...sel.options].some(o => o.value === current)) sel.value = current;
+  else { sel.value = 'all'; filterProject = 'all'; }
+}
+
+function loadSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('tokenburn_settings') || '{}');
+    if (saved.currency && CURRENCIES[saved.currency]) selectedCurrency = saved.currency;
+    if (saved.subCost !== undefined && saved.subCost >= 0) subCostPerMonth = saved.subCost;
+    if (saved.subStart) subStartMonth = saved.subStart;
+  } catch (e) {}
+}
+
+function saveSettings() {
+  localStorage.setItem('tokenburn_settings', JSON.stringify({
+    currency: selectedCurrency,
+    subCost: subCostPerMonth,
+    subStart: subStartMonth,
+  }));
+}
+
+function init() {
+  loadSettings();
+
+  // Set controls to loaded values
+  document.getElementById('currencySelect').value = selectedCurrency;
+  document.getElementById('subCostInput').value = subCostPerMonth;
+  document.getElementById('subStartInput').value = subStartMonth;
+
+  // Populate machine dropdown
+  const machSel = document.getElementById('filterMachine');
+  MACHINE_DATA.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.name;
+    opt.textContent = `${m.name} (${m.platform || '?'})`;
+    machSel.appendChild(opt);
+  });
+  // If only one machine, hide machine filter
+  if (MACHINE_DATA.length <= 1) {
+    machSel.closest('.filter-group').style.display = 'none';
+  }
+
+  populateProjectDropdown();
+
+  // Set initial date range
+  document.getElementById('filterFrom').value = DATA.grand.date_range.start;
+  document.getElementById('filterTo').value = DATA.grand.date_range.end;
+
+  // Event listeners
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
+  });
+  document.getElementById('filterFrom').addEventListener('change', e => {
+    filterFrom = e.target.value;
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    renderAll();
+  });
+  document.getElementById('filterTo').addEventListener('change', e => {
+    filterTo = e.target.value;
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    renderAll();
+  });
+  document.getElementById('filterMachine').addEventListener('change', e => {
+    filterMachine = e.target.value;
+    populateProjectDropdown();
+    renderAll();
+  });
+  document.getElementById('filterProject').addEventListener('change', e => {
+    filterProject = e.target.value;
+    renderAll();
+  });
+  document.getElementById('currencySelect').addEventListener('change', e => {
+    selectedCurrency = e.target.value;
+    saveSettings();
+    renderAll();
+  });
+  document.getElementById('subCostInput').addEventListener('input', e => {
+    const val = parseFloat(e.target.value);
+    if (!isNaN(val) && val >= 0) {
+      subCostPerMonth = val;
+      saveSettings();
+      renderAll();
+    }
+  });
+  document.getElementById('subStartInput').addEventListener('change', e => {
+    if (e.target.value) {
+      subStartMonth = e.target.value;
+      saveSettings();
+      renderAll();
+    }
+  });
+
+  const genDate = new Date(DATA.grand.generated_at);
+  document.getElementById('generatedAt').textContent = `Generated: ${genDate.toLocaleString()}`;
+
+  renderAll();
+}
+
+init();
+</script>
+</body>
+</html>

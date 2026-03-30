@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+data.json
+.DS_Store
+machines/data-*.json
+index.html

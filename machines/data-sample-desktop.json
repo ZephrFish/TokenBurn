@@ -1,0 +1,151 @@
+{
+  "grand": {
+    "input_tokens": 245000,
+    "output_tokens": 89000,
+    "cache_read": 12500000,
+    "cache_create": 3200000,
+    "total_cost": 42.15,
+    "total_messages": 580,
+    "total_sessions": 12,
+    "total_files_parsed": 45,
+    "date_range": {
+      "start": "2025-12-01",
+      "end": "2025-12-14"
+    }
+  },
+  "daily": [
+    {
+      "date": "2025-12-01",
+      "input_tokens": 18000,
+      "output_tokens": 6500,
+      "cache_read": 920000,
+      "cache_create": 240000,
+      "messages": 42,
+      "sessions": 1,
+      "cost": 3.12,
+      "by_model": {
+        "Opus 4.6": {"input_tokens": 12000, "output_tokens": 5200, "cache_read": 720000, "cache_create": 180000, "cost": 2.65},
+        "Haiku 4.5": {"input_tokens": 6000, "output_tokens": 1300, "cache_read": 200000, "cache_create": 60000, "cost": 0.47}
+      }
+    },
+    {
+      "date": "2025-12-02",
+      "input_tokens": 32000,
+      "output_tokens": 11000,
+      "cache_read": 1600000,
+      "cache_create": 410000,
+      "messages": 78,
+      "sessions": 2,
+      "cost": 5.44,
+      "by_model": {
+        "Opus 4.6": {"input_tokens": 22000, "output_tokens": 8500, "cache_read": 1200000, "cache_create": 300000, "cost": 4.51},
+        "Haiku 4.5": {"input_tokens": 10000, "output_tokens": 2500, "cache_read": 400000, "cache_create": 110000, "cost": 0.93}
+      }
+    },
+    {
+      "date": "2025-12-03",
+      "input_tokens": 15000,
+      "output_tokens": 4200,
+      "cache_read": 780000,
+      "cache_create": 195000,
+      "messages": 35,
+      "sessions": 1,
+      "cost": 2.18,
+      "by_model": {
+        "Haiku 4.5": {"input_tokens": 15000, "output_tokens": 4200, "cache_read": 780000, "cache_create": 195000, "cost": 2.18}
+      }
+    },
+    {
+      "date": "2025-12-05",
+      "input_tokens": 42000,
+      "output_tokens": 15000,
+      "cache_read": 2100000,
+      "cache_create": 520000,
+      "messages": 95,
+      "sessions": 2,
+      "cost": 7.21,
+      "by_model": {
+        "Opus 4.6": {"input_tokens": 30000, "output_tokens": 12000, "cache_read": 1600000, "cache_create": 380000, "cost": 6.02},
+        "Haiku 4.5": {"input_tokens": 12000, "output_tokens": 3000, "cache_read": 500000, "cache_create": 140000, "cost": 1.19}
+      }
+    },
+    {
+      "date": "2025-12-08",
+      "input_tokens": 28000,
+      "output_tokens": 9800,
+      "cache_read": 1400000,
+      "cache_create": 360000,
+      "messages": 65,
+      "sessions": 1,
+      "cost": 4.82,
+      "by_model": {
+        "Opus 4.6": {"input_tokens": 28000, "output_tokens": 9800, "cache_read": 1400000, "cache_create": 360000, "cost": 4.82}
+      }
+    },
+    {
+      "date": "2025-12-10",
+      "input_tokens": 55000,
+      "output_tokens": 21000,
+      "cache_read": 2800000,
+      "cache_create": 720000,
+      "messages": 120,
+      "sessions": 3,
+      "cost": 9.56,
+      "by_model": {
+        "Opus 4.6": {"input_tokens": 35000, "output_tokens": 16000, "cache_read": 2000000, "cache_create": 500000, "cost": 7.88},
+        "Haiku 4.5": {"input_tokens": 20000, "output_tokens": 5000, "cache_read": 800000, "cache_create": 220000, "cost": 1.68}
+      }
+    },
+    {
+      "date": "2025-12-12",
+      "input_tokens": 22000,
+      "output_tokens": 8500,
+      "cache_read": 1100000,
+      "cache_create": 285000,
+      "messages": 52,
+      "sessions": 1,
+      "cost": 3.91,
+      "by_model": {
+        "Sonnet 4.6": {"input_tokens": 22000, "output_tokens": 8500, "cache_read": 1100000, "cache_create": 285000, "cost": 3.91}
+      }
+    },
+    {
+      "date": "2025-12-14",
+      "input_tokens": 33000,
+      "output_tokens": 13000,
+      "cache_read": 1800000,
+      "cache_create": 470000,
+      "messages": 93,
+      "sessions": 1,
+      "cost": 5.91,
+      "by_model": {
+        "Opus 4.6": {"input_tokens": 33000, "output_tokens": 13000, "cache_read": 1800000, "cache_create": 470000, "cost": 5.91}
+      }
+    }
+  ],
+  "models": [
+    {"model": "Opus 4.6", "input_tokens": 160000, "output_tokens": 64500, "cache_read": 8720000, "cache_create": 2190000, "cost": 31.79, "messages": 380},
+    {"model": "Haiku 4.5", "input_tokens": 63000, "output_tokens": 16000, "cache_read": 2680000, "cache_create": 725000, "cost": 6.45, "messages": 148},
+    {"model": "Sonnet 4.6", "input_tokens": 22000, "output_tokens": 8500, "cache_read": 1100000, "cache_create": 285000, "cost": 3.91, "messages": 52}
+  ],
+  "projects": [
+    {"project": "webapp-frontend", "input_tokens": 95000, "output_tokens": 38000, "cache_read": 5200000, "cache_create": 1300000, "cost": 17.42, "messages": 220, "sessions": 4},
+    {"project": "api-server", "input_tokens": 72000, "output_tokens": 25000, "cache_read": 3800000, "cache_create": 950000, "cost": 12.88, "messages": 175, "sessions": 3},
+    {"project": "data-pipeline", "input_tokens": 45000, "output_tokens": 16000, "cache_read": 2100000, "cache_create": 580000, "cost": 7.35, "messages": 110, "sessions": 3},
+    {"project": "docs-site", "input_tokens": 33000, "output_tokens": 10000, "cache_read": 1400000, "cache_create": 370000, "cost": 4.50, "messages": 75, "sessions": 2}
+  ],
+  "hours": [
+    {"hour": 0, "count": 12}, {"hour": 1, "count": 5}, {"hour": 2, "count": 2}, {"hour": 3, "count": 0},
+    {"hour": 4, "count": 0}, {"hour": 5, "count": 0}, {"hour": 6, "count": 3}, {"hour": 7, "count": 15},
+    {"hour": 8, "count": 42}, {"hour": 9, "count": 68}, {"hour": 10, "count": 85}, {"hour": 11, "count": 72},
+    {"hour": 12, "count": 35}, {"hour": 13, "count": 55}, {"hour": 14, "count": 62}, {"hour": 15, "count": 48},
+    {"hour": 16, "count": 40}, {"hour": 17, "count": 32}, {"hour": 18, "count": 18}, {"hour": 19, "count": 25},
+    {"hour": 20, "count": 22}, {"hour": 21, "count": 15}, {"hour": 22, "count": 14}, {"hour": 23, "count": 10}
+  ],
+  "machine": {
+    "name": "sample-desktop",
+    "hostname": "sample-desktop",
+    "platform": "Darwin",
+    "collected_at": "2025-12-15T10:00:00+00:00"
+  }
+}
